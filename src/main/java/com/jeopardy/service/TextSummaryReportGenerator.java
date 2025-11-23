@@ -64,7 +64,7 @@ public class TextSummaryReportGenerator implements SummaryReportGenerator {
             int turn = 1;
             boolean anyTurns = false;
             for (GameEvent ev : events) {
-                if (!"QUESTION_ANSWERED".equalsIgnoreCase(ev.getActivity())) {
+                if (!"Answer Question".equalsIgnoreCase(ev.getActivity())) {
                     continue;
                 }
                 anyTurns = true;

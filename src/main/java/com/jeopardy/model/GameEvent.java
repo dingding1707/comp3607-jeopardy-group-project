@@ -3,6 +3,7 @@ package com.jeopardy.model;
 import java.time.Instant;
 
 public class GameEvent {
+
     private String caseId;
     private String playerId;
     private String activity;
@@ -12,7 +13,9 @@ public class GameEvent {
     private String answerGiven;
     private String result;
     private Integer scoreAfterPlay;
-    private String questionText;   // NEW
+
+    // NEW → Needed by TextSummaryReportGenerator
+    private String questionText;
 
     private GameEvent(Builder builder) {
         this.caseId = builder.caseId;
@@ -24,9 +27,10 @@ public class GameEvent {
         this.answerGiven = builder.answerGiven;
         this.result = builder.result;
         this.scoreAfterPlay = builder.scoreAfterPlay;
-        this.questionText = builder.questionText;   // NEW
+        this.questionText = builder.questionText;  // NEW
     }
 
+    // Getters
     public String getCaseId() { return caseId; }
     public String getPlayerId() { return playerId; }
     public String getActivity() { return activity; }
@@ -36,9 +40,15 @@ public class GameEvent {
     public String getAnswerGiven() { return answerGiven; }
     public String getResult() { return result; }
     public Integer getScoreAfterPlay() { return scoreAfterPlay; }
-    public String getQuestionText() { return questionText; }   // NEW
 
+    // NEW → Summary report needs this
+    public String getQuestionText() { return questionText; }
+
+    // ============================
+    //          BUILDER
+    // ============================
     public static class Builder {
+
         private String caseId;
         private String playerId;
         private String activity;
@@ -48,7 +58,9 @@ public class GameEvent {
         private String answerGiven;
         private String result;
         private Integer scoreAfterPlay;
-        private String questionText;  // NEW
+
+        // NEW → store question text for summary
+        private String questionText;
 
         public Builder(String caseId, String activity) {
             this.caseId = caseId;
@@ -91,7 +103,7 @@ public class GameEvent {
             return this;
         }
 
-        // NEW: store full question text for the summary report
+        // NEW → fully support summary formatting
         public Builder questionText(String questionText) {
             this.questionText = questionText;
             return this;

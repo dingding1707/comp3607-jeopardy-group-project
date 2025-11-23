@@ -5,6 +5,8 @@ import com.jeopardy.model.GameEvent;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Writes game events to a CSV file for process mining.
@@ -19,6 +21,10 @@ public class CsvGameEventLogger implements GameEventLogger {
             "Case_ID", "Player_ID", "Activity", "Timestamp",
             "Category", "Question_Value", "Answer_Given", "Result", "Score_After_Play"
     };
+
+    private static final DateTimeFormatter TS_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+                    .withZone(ZoneId.systemDefault());
 
     private final Path logFile;
     private BufferedWriter writer;
@@ -65,10 +71,11 @@ public class CsvGameEventLogger implements GameEventLogger {
         writer.flush();
     }
 
-    private String escape(String value) {
-        if (value == null) return "";
-        String v = value.replace("\"", "\"\"");
-        if (v.contains(",") || v.contains("\"") || v.contains("\n")) {
+    private String escape(String v) {
+        if (v == null) return "";
+        v = v.trim();
+        if (v.contains(",") || v.contains("\"")) {
+            v = v.replace("\"", "\"\"");
             return "\"" + v + "\"";
         }
         return v;
@@ -83,7 +90,7 @@ public class CsvGameEventLogger implements GameEventLogger {
                     escape(event.getCaseId()),
                     escape(event.getPlayerId()),
                     escape(event.getActivity()),
-                    escape(event.getTimestamp() != null ? event.getTimestamp().toString() : null),
+                    escape(event.getTimestamp() != null ? TS_FORMAT.format(event.getTimestamp()) : ""),
                     escape(event.getCategory()),
                     event.getQuestionValue() != null ? event.getQuestionValue().toString() : "",
                     escape(event.getAnswerGiven()),
@@ -98,11 +105,8 @@ public class CsvGameEventLogger implements GameEventLogger {
 
     @Override
     public void close() {
-        if (writer != null) {
-            try {
-                writer.close();
-            } catch (IOException ignored) {
-            }
-        }
+        try {
+            if (writer != null) writer.close();
+        } catch (IOException ignored) {}
     }
 }

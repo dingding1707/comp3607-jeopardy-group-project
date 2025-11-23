@@ -1,14 +1,15 @@
 package com.jeopardy.service;
 
 import java.util.List;
-import java.util.ArrayList;   // NEW
+import java.util.ArrayList;
 
 import com.jeopardy.model.Category;
 import com.jeopardy.model.GameData;
+import com.jeopardy.model.GameEvent;
 import com.jeopardy.model.GameState;
 import com.jeopardy.model.Player;
 import com.jeopardy.model.Question;
-import com.jeopardy.model.GameEvent;
+
 import java.time.Instant;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -24,7 +25,7 @@ public class GameController {
     private GameEventLogger eventLogger;
     private SummaryReportGenerator reportGenerator;
 
-    // NEW: keep in-memory list of events for the summary report
+    // Keep all events in memory for the summary report
     private final List<GameEvent> gameEvents = new ArrayList<>();
 
     public GameController() {
@@ -39,9 +40,18 @@ public class GameController {
         this.eventLogger = eventLogger;
     }
 
-    /**
-     * Initialize the game with players and data
-     */
+    public Game getGame() {
+        return game;
+    }
+
+    public GameData getGameData() {
+        return gameData;
+    }
+
+    public GameState getGameState() {
+        return game.getState();
+    }
+
     public void initializeGame(List<String> playerNames, GameData gameData) {
         if (playerNames == null || playerNames.isEmpty()) {
             throw new IllegalArgumentException("Player names cannot be null or empty");
@@ -53,25 +63,18 @@ public class GameController {
         this.game = new Game();
         this.scoreManager = new ScoreManager();
 
-        // Add players
         for (String name : playerNames) {
             game.addPlayer(name.trim());
         }
 
-        // Set game data
         this.gameData = gameData;
         game.setCategories(gameData.getCategories());
 
-        // Start the game
         game.startGame();
 
-        // Log game start (no question text)
-        logEvent("GAME_STARTED", null, null, null, null, null);
+        systemEvent("Start Game", null, null, null);
     }
 
-    /**
-     * Handle a player selecting and answering a question
-     */
     public boolean answerQuestion(String categoryName, int questionValue, String playerAnswer) {
         if (game.getState() != GameState.IN_PROGRESS) {
             throw new IllegalStateException("Game is not in progress");
@@ -80,96 +83,67 @@ public class GameController {
         Player currentPlayer = game.getCurrentPlayer();
         Question question = game.getQuestion(categoryName, questionValue);
 
-        if (question == null) {
-            throw new IllegalArgumentException("Question not found: " + categoryName + " - " + questionValue);
-        }
-        if (question.isAnswered()) {
-            throw new IllegalStateException("Question has already been answered");
-        }
-        if (playerAnswer == null || playerAnswer.trim().isEmpty()) {
-            throw new IllegalArgumentException("Answer cannot be null or empty");
-        }
+        if (question == null) throw new IllegalArgumentException("Invalid question");
+        if (question.isAnswered()) throw new IllegalStateException("Question already answered");
 
-        // Check if answer is correct
-        boolean isCorrect = question.isCorrect(playerAnswer);
+        boolean correct = question.isCorrect(playerAnswer);
 
-        // Update score
-        scoreManager.updateScore(currentPlayer, questionValue, isCorrect);
-
-        // Mark question as answered
+        scoreManager.updateScore(currentPlayer, questionValue, correct);
         question.setAnswered(true);
 
-        // Log the question result WITH question text
-        logEvent(
-                "QUESTION_ANSWERED",
+        String fullAnswer = resolveAnswerText(categoryName, questionValue, playerAnswer);
+
+        // Activity name: "Answer Question" (used by both log & summary)
+        logEvent("Answer Question",
                 currentPlayer,
                 categoryName,
                 questionValue,
-                playerAnswer,
-                isCorrect ? "CORRECT" : "INCORRECT",
-                question.getQuestionText() // NEW
-        );
+                fullAnswer,
+                correct ? "Correct" : "Incorrect",
+                question.getQuestionText());
 
-        // Move to next turn
         game.nextTurn();
-
-        return isCorrect;
+        return correct;
     }
 
-    /**
-     * Check if game should end and end it if conditions are met
-     */
     public boolean checkAndEndGame() {
         if (!game.hasAvailableQuestions() || game.allQuestionsAnswered()) {
-            game.endGame();
-
-            // Log game finish
-            logEvent("GAME_FINISHED", null, null, null, null, null);
-
+            forceEndGame();
             return true;
         }
         return false;
     }
 
-    // NEW: force end from "End Game" button
     public void forceEndGame() {
         if (!isGameFinished()) {
             game.endGame();
-            logEvent("GAME_FINISHED", null, null, null, null, null);
+            systemEvent("End Game", null, null, null);
         }
     }
 
-    // Getters for UI and other components
-    public Game getGame() { return game; }
-    public ScoreManager getScoreManager() { return scoreManager; }
-    public GameData getGameData() { return gameData; }
-    public Player getCurrentPlayer() { return game.getCurrentPlayer(); }
     public List<Player> getPlayers() { return game.getPlayers(); }
     public List<Category> getCategories() { return game.getCategories(); }
-    public GameState getGameState() { return game.getState(); }
+    public Player getCurrentPlayer() { return game.getCurrentPlayer(); }
     public boolean isGameFinished() { return game.isGameFinished(); }
     public Player getWinner() { return game.getWinner(); }
+    public List<GameEvent> getGameEvents() { return List.copyOf(gameEvents); }
 
-    // NEW: expose immutable view of events for the report generator
-    public List<GameEvent> getGameEvents() {
-        return List.copyOf(gameEvents);
+    private String resolveAnswerText(String category, Integer value, String letter) {
+        if (letter == null) return "";
+        if (category == null || value == null) return letter;
+
+        Question q = game.getQuestion(category, value);
+        if (q == null) return letter;
+
+        String full = q.getOptions().get(letter);
+        return full != null ? full : letter;
     }
 
-    /**
-     * Get game summary (no longer used by report but still useful elsewhere)
-     */
-    public String getGameSummary() {
-        return String.format(
-            "Game ID: %s\nPlayers: %d\nTotal Turns: %d\nGame State: %s\nScoring: %s",
-            game.getGameId(),
-            game.getPlayerCount(),
-            game.getTotalTurns(),
-            game.getState(),
-            scoreManager.getScoringStrategyName()
-        );
+    public void systemEvent(String activity, String category, Integer value, String extra) {
+        logEvent(activity, null, category, value, extra, null, null);
     }
 
-    // ORIGINAL convenience signature
+    // NEW: 6-arg convenience overload
     private void logEvent(String activity,
                           Player player,
                           String category,
@@ -179,7 +153,7 @@ public class GameController {
         logEvent(activity, player, category, questionValue, answerGiven, result, null);
     }
 
-    // NEW: master logger with questionText
+    // Main logger with questionText
     private void logEvent(String activity,
                           Player player,
                           String category,
@@ -188,35 +162,27 @@ public class GameController {
                           String result,
                           String questionText) {
 
-        if (eventLogger == null && gameEvents == null) {
-            return;
-        }
-
         GameEvent event = new GameEvent.Builder(
-                game.getGameId(),          // caseId
-                activity                   // activity
+                game.getGameId(),
+                activity
         )
-                .playerId(player != null ? player.getPlayerId() : null)
+                .playerId(player != null ? player.getName() : "System")
                 .timestamp(Instant.now())
                 .category(category)
                 .questionValue(questionValue)
                 .answerGiven(answerGiven)
                 .result(result)
                 .scoreAfterPlay(player != null ? player.getScore() : null)
-                .questionText(questionText)    // NEW
+                .questionText(questionText)
                 .build();
 
-        if (eventLogger != null) {
-            eventLogger.logEvent(event);
-        }
-        // Always keep in-memory copy for reporting
+        if (eventLogger != null) eventLogger.logEvent(event);
         gameEvents.add(event);
     }
 
     public Path generateSummaryReport() throws IOException {
-        if (reportGenerator == null) {
+        if (reportGenerator == null)
             throw new IllegalStateException("No report generator configured.");
-        }
         return reportGenerator.generate(this);
     }
 }

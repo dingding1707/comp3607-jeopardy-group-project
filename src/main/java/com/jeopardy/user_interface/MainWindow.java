@@ -15,8 +15,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Main Swing window for the Jeopardy game.
@@ -82,7 +85,7 @@ public class MainWindow extends JFrame {
         startGameButton.setEnabled(false);
         endGameButton = new JButton("End Game");
         endGameButton.setEnabled(false);
-        newGameButton = new JButton("New Game");    // <-- use field, not local
+        newGameButton = new JButton("New Game");    // use field, not local
         newGameButton.setEnabled(false);
         rightControls.add(startGameButton);
         rightControls.add(endGameButton);
@@ -129,6 +132,11 @@ public class MainWindow extends JFrame {
         refreshScores();
     }
 
+    // === Helper to log system events into process log ===
+    private void logSystem(String activity, String category, Integer value, String extra) {
+        controller.systemEvent(activity, category, value, extra);
+    }
+
     private void wireActions() {
         loadButton.addActionListener(e -> onLoadQuestions());
         startGameButton.addActionListener(e -> onStartGame());
@@ -149,6 +157,9 @@ public class MainWindow extends JFrame {
             return;
         }
 
+        // Process log: Load File
+        logSystem("Load File", null, null, null);
+
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new FileNameExtensionFilter(
                 "Jeopardy Data Files (CSV, JSON, XML)", "csv", "json", "xml"));
@@ -162,6 +173,9 @@ public class MainWindow extends JFrame {
             String path = chooser.getSelectedFile().getAbsolutePath();
             GameDataLoader loader = GameDataLoaderFactory.createLoader(path);
             loadedGameData = loader.load(Path.of(path));
+
+            // Process log: File Loaded Successfully
+            logSystem("File Loaded Successfully", null, null, "Success");
 
             JOptionPane.showMessageDialog(this,
                     "Loaded " + loadedGameData.getTotalQuestions() +
@@ -197,6 +211,10 @@ public class MainWindow extends JFrame {
         }
 
         int playerCount = ((Integer) playerCountSpinner.getValue()).intValue();
+
+        // Process log: Select Player Count
+        logSystem("Select Player Count", null, null, String.valueOf(playerCount));
+
         List<String> names = new ArrayList<String>();
 
         for (int i = 0; i < playerCount; i++) {
@@ -210,11 +228,14 @@ public class MainWindow extends JFrame {
                         "Missing Player Names",
                         JOptionPane.ERROR_MESSAGE
                 );
-                return;  
+                return;
             }
+
+            // Process log: Enter Player Name
+            logSystem("Enter Player Name", null, null, name);
+
             names.add(name);
         }
-
 
         try {
             controller.initializeGame(names, loadedGameData);
@@ -319,6 +340,10 @@ public class MainWindow extends JFrame {
                     JOptionPane.INFORMATION_MESSAGE);
             return;
         }
+
+        // Process log: Select Category & Select Question
+        logSystem("Select Category", categoryName, null, null);
+        logSystem("Select Question", categoryName, value, null);
 
         Question q = controller.getGame().getQuestion(categoryName, value);
         if (q == null) {
@@ -453,9 +478,13 @@ public class MainWindow extends JFrame {
 
         statusLabel.setText("Game finished. " + message);
 
-        // === NEW: Generate summary report when game finishes ===
+        // Generate summary report when game finishes
         try {
             Path reportPath = controller.generateSummaryReport();
+
+            // Process log: Generate Report
+            logSystem("Generate Report", null, null, null);
+
             JOptionPane.showMessageDialog(this,
                     "Summary report generated:\n" + reportPath.toAbsolutePath(),
                     "Summary Report",
@@ -486,6 +515,9 @@ public class MainWindow extends JFrame {
     }
 
     private void resetGame() {
+        // Process log: New Game
+        logSystem("New Game", null, null, null);
+
         // New controller so game state (players, questions) is fresh next time
         this.controller = new GameController();
         this.gameInProgress = false;
