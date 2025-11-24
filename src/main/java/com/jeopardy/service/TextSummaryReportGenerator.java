@@ -1,15 +1,12 @@
 package com.jeopardy.service;
 
-import com.jeopardy.model.Category;
-import com.jeopardy.model.GameState;
+import com.jeopardy.model.GameEvent;
 import com.jeopardy.model.Player;
-import com.jeopardy.model.Question;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.nio.file.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,71 +14,76 @@ public class TextSummaryReportGenerator implements SummaryReportGenerator {
 
     @Override
     public Path generate(GameController controller) throws IOException {
-        String fileName = "jeopardy_report_" + System.currentTimeMillis() + ".txt";
-        Path filePath = Path.of(fileName);
-        
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile()))) {
-            GameState gameState = controller.getGameState();
-            List<Player> players = controller.getPlayers();
-            List<Category> categories = controller.getCategories();
-            
+
+        // Ensure report directory exists
+        Path reportDir = Paths.get("report");
+        if (!Files.exists(reportDir)) {
+            Files.createDirectories(reportDir);
+        }
+
+        Path reportPath = reportDir.resolve("summary_report.txt");
+
+        List<GameEvent> turns = controller.getGameplayEvents();
+        List<Player> players = controller.getPlayers();
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(reportPath.toFile()))) {
+
+            // Header
             writer.println("JEOPARDY PROGRAMMING GAME REPORT");
             writer.println("================================");
             writer.println();
-            writer.println("Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            writer.println("Case ID: " + controller.getCaseId());
             writer.println();
-            
-            writer.println("PLAYERS:");
-            writer.println("--------");
-            for (Player player : players) {
-                writer.println("- " + player.getName() + ": " + player.getScore() + " points");
-            }
+
+            // Players line
+            String playerNames = players.stream()
+                    .map(Player::getName)
+                    .collect(Collectors.joining(", "));
+            writer.println("Players: " + playerNames);
             writer.println();
-            
-            writer.println("GAMEPLAY SUMMARY:");
+
+            // Gameplay summary
+            writer.println("Gameplay Summary:");
             writer.println("-----------------");
-            
-            List<Question> answeredQuestions = categories.stream()
-                .flatMap(category -> category.getAllQuestions().stream())
-                .filter(Question::isAnswered)
-                .collect(Collectors.toList());
-                
-            int turn = 1;
-            for (Question q : answeredQuestions) {
-                writer.println("Turn " + turn + ": " + q.getCategory() + " - " + q.getValue() + " points");
-                writer.println("  Question: " + q.getQuestionText());
-                writer.println("  Correct Answer: " + q.getCorrectAnswer());
-                turn++;
+
+            int turnNumber = 1;
+            for (GameEvent ev : turns) {
+
+                writer.println("Turn " + turnNumber + ": " +
+                        ev.getPlayerId() + " selected " +
+                        ev.getCategory() + " for " +
+                        ev.getQuestionValue() + " pts");
+
+                writer.println("Question: " + ev.getQuestionText());
+                writer.println("Answer: " + ev.getAnswerGiven() +
+                        " — " + ev.getResult() +
+                        (ev.getResult().equals("Correct")
+                                ? " (+" + ev.getQuestionValue() + " pts)"
+                                : " (-" + ev.getQuestionValue() + " pts)"));
+
+                writer.println("Score after turn: " + ev.getPlayerId() +
+                        " = " + ev.getScoreAfterPlay());
+                writer.println();
+
+                turnNumber++;
+            }
+
+            writer.println("Final Scores:");
+            for (Player p : players) {
+                writer.println(p.getName() + ": " + p.getScore());
             }
             writer.println();
-            
-            writer.println("FINAL SCORES:");
-            writer.println("-------------");
-            for (Player player : players) {
-                writer.println("- " + player.getName() + ": " + player.getScore() + " points");
+
+            // Tie information only if there is a tie
+            List<Player> winners = controller.getWinners();
+            if (winners.size() > 1) {
+                writer.println("It's a tie! Winners: " +
+                        winners.stream()
+                               .map(w -> w.getName() + " (" + w.getScore() + " points)")
+                               .collect(Collectors.joining(", ")));
             }
-            writer.println();
-            
-            List<Player> winners = gameState.determineWinners();
-            writer.println("FINAL RESULT:");
-            writer.println("-------------");
-            
-            if (winners.isEmpty()) {
-                writer.println("No winners!");
-            } else if (winners.size() == 1) {
-                writer.println("WINNER: " + winners.get(0).getName() + " with " + winners.get(0).getScore() + " points!");
-            } else {
-                writer.println("IT'S A TIE!");
-                writer.println("Winners:");
-                for (Player winner : winners) {
-                    writer.println("- " + winner.getName() + ": " + winner.getScore() + " points");
-                }
-            }
-            
-            writer.println();
-            writer.println("Thank you for playing Jeopardy!");
         }
-        
-        return filePath;
+
+        return reportPath;
     }
 }

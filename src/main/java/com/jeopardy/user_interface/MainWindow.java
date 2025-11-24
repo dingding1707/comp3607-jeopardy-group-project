@@ -157,7 +157,8 @@ public class MainWindow extends JFrame {
             return;
         }
 
-        // Process log: Load File
+        logSystem("Start Game", null, null, null);
+
         logSystem("Load File", null, null, null);
 
         JFileChooser chooser = new JFileChooser();
@@ -500,6 +501,9 @@ public class MainWindow extends JFrame {
             // Process log: Generate Report
             logSystem("Generate Report", null, null, null);
 
+            logSystem("Generate Event Log", null, null, null);
+            logSystem("Exit Game", null, null, null);
+
             JOptionPane.showMessageDialog(this,
                     "Summary report generated:\n" + reportPath.toAbsolutePath(),
                     "Summary Report",
@@ -530,9 +534,6 @@ public class MainWindow extends JFrame {
     }
 
     private void resetGame() {
-    // Process log: New Game
-    logSystem("New Game", null, null, null);
-
     // Create a completely new controller to reset everything
     this.controller = new GameController();
     this.gameInProgress = false;
