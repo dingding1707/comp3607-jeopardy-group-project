@@ -37,7 +37,7 @@ public class DataValidator {
         }
 
         // getQuestions() returns a MAP <Integer, Question>
-        if (c.getQuestions() == null || c.getQuestions().isEmpty()) {
+        if (c.getAllQuestions() == null || c.getAllQuestions().isEmpty()) {
             throw new IllegalArgumentException(
                 "Category '" + c.getName() + "' has no questions."
             );
@@ -46,7 +46,7 @@ public class DataValidator {
         Set<Integer> values = new HashSet<>();
 
         // Iterate through the *values()* of the map
-        for (Question q : c.getQuestions().values()) {
+        for (Question q : c.getAllQuestions()) {
 
             validateQuestion(q, c.getName());
 

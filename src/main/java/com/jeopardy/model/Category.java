@@ -26,11 +26,11 @@ public class Category {
         return name; 
     }
     
-    public Map<Integer, Question> getQuestions() { 
+    public Map<Integer, Question> getQuestion() { 
         return new TreeMap<>(questions); 
     }
     
-    public Question getQuestion(int value) { 
+    public Question getQuestions(int value) { 
         return questions.get(value); 
     }
     

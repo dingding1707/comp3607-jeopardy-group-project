@@ -1,112 +1,87 @@
 package com.jeopardy.service;
 
 import com.jeopardy.model.GameEvent;
-
-import java.io.BufferedWriter;
+import com.jeopardy.model.GameState;
+import com.jeopardy.model.Player;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.*;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
-/**
- * Writes game events to a CSV file for process mining.
- * Columns:
- * Case_ID, Player_ID, Activity, Timestamp,
- * Category, Question_Value, Answer_Given, Result, Score_After_Play
- */
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CsvGameEventLogger implements GameEventLogger {
-
-    private static final String[] HEADER = {
-            "Case_ID", "Player_ID", "Activity", "Timestamp",
-            "Category", "Question_Value", "Answer_Given", "Result", "Score_After_Play"
-    };
-
-    private static final DateTimeFormatter TS_FORMAT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-                    .withZone(ZoneId.systemDefault());
-
-    private final Path logFile;
-    private BufferedWriter writer;
-    private boolean headerWritten;
-
-    public CsvGameEventLogger() {
-        this(Paths.get("logs", "game_event_log.csv"));
+    private static final String CSV_HEADER = "Case_ID,Player_ID,Activity,Timestamp,Category,Question_Value,Answer_Given,Result,Score_After";
+    private String caseId;
+    private String logFilePath;
+    
+    public CsvGameEventLogger(String caseId) {
+        this.caseId = caseId;
+        this.logFilePath = "game_event_log.csv";
+        initializeLogFile();
     }
-
-    public CsvGameEventLogger(Path logFile) {
-        this.logFile = logFile;
-        initWriter();
-    }
-
-    private void initWriter() {
-        try {
-            if (logFile.getParent() != null) {
-                Files.createDirectories(logFile.getParent());
-            }
-            boolean exists = Files.exists(logFile);
-            writer = Files.newBufferedWriter(
-                    logFile,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND
-            );
-            headerWritten = exists && Files.size(logFile) > 0;
-            if (!headerWritten) {
-                writeHeader();
-            }
+    
+    private void initializeLogFile() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(logFilePath, false))) {
+            writer.println(CSV_HEADER);
         } catch (IOException e) {
-            System.err.println("Failed to initialize event logger: " + e.getMessage());
-            writer = null;
+            System.err.println("Error initializing log file: " + e.getMessage());
         }
     }
-
-    private void writeHeader() throws IOException {
-        writeLine(String.join(",", HEADER));
-        headerWritten = true;
-    }
-
-    private void writeLine(String line) throws IOException {
-        writer.write(line);
-        writer.newLine();
-        writer.flush();
-    }
-
-    private String escape(String v) {
-        if (v == null) return "";
-        v = v.trim();
-        if (v.contains(",") || v.contains("\"")) {
-            v = v.replace("\"", "\"\"");
-            return "\"" + v + "\"";
-        }
-        return v;
-    }
-
+    
     @Override
     public void logEvent(GameEvent event) {
-        if (writer == null || event == null) return;
-
-        try {
-            String line = String.join(",",
-                    escape(event.getCaseId()),
-                    escape(event.getPlayerId()),
-                    escape(event.getActivity()),
-                    escape(event.getTimestamp() != null ? TS_FORMAT.format(event.getTimestamp()) : ""),
-                    escape(event.getCategory()),
-                    event.getQuestionValue() != null ? event.getQuestionValue().toString() : "",
-                    escape(event.getAnswerGiven()),
-                    escape(event.getResult()),
-                    event.getScoreAfterPlay() != null ? event.getScoreAfterPlay().toString() : ""
+        try (PrintWriter writer = new PrintWriter(new FileWriter(logFilePath, true))) {
+            String timestamp = event.getTimestamp().toString();
+            writer.printf("%s,%s,%s,%s,%s,%s,%s,%s,%d%n",
+                event.getCaseId(),
+                event.getPlayerId() != null ? event.getPlayerId() : "System",
+                event.getActivity(),
+                timestamp,
+                event.getCategory() != null ? event.getCategory() : "N/A",
+                event.getQuestionValue() != null ? event.getQuestionValue() : "N/A",
+                event.getAnswerGiven() != null ? event.getAnswerGiven() : "N/A",
+                event.getResult() != null ? event.getResult() : "N/A",
+                event.getScoreAfterPlay() != null ? event.getScoreAfterPlay() : 0
             );
-            writeLine(line);
         } catch (IOException e) {
-            System.err.println("Failed to log event: " + e.getMessage());
+            System.err.println("Error logging event: " + e.getMessage());
         }
     }
-
+    
+    public void logGameEnd(GameState gameState) {
+        List<Player> winners = gameState.determineWinners();
+        String result;
+        
+        if (winners.isEmpty()) {
+            result = "No winners";
+        } else if (winners.size() == 1) {
+            result = "Winner: " + winners.get(0).getName();
+        } else {
+            result = "Tie: " + winners.stream()
+                    .map(Player::getName)
+                    .collect(Collectors.joining(", "));
+        }
+        
+        GameEvent endEvent = new GameEvent.Builder(caseId, "Game End")
+            .result(result)
+            .build();
+        logEvent(endEvent);
+        
+        for (Player winner : winners) {
+            GameEvent winnerEvent = new GameEvent.Builder(caseId, "Final Score")
+                .playerId(winner.getPlayerId())
+                .result("Winner")
+                .scoreAfterPlay(winner.getScore())
+                .build();
+            logEvent(winnerEvent);
+        }
+    }
+    
     @Override
     public void close() {
-        try {
-            if (writer != null) writer.close();
-        } catch (IOException ignored) {}
+        GameEvent closeEvent = new GameEvent.Builder(caseId, "Close Logger")
+            .result("Success")
+            .build();
+        logEvent(closeEvent);
     }
 }

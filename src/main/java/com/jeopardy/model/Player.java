@@ -22,6 +22,11 @@ public class Player{
         return this.score;
     }
 
+    public void setScore(int score){
+        if(score >= 0)
+            this.score = score;
+    }
+    
     public void addPoints(int points){
         if(points > 0)
             this.score += points;

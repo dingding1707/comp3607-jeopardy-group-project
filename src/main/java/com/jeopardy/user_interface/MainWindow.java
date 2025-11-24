@@ -85,7 +85,7 @@ public class MainWindow extends JFrame {
         startGameButton.setEnabled(false);
         endGameButton = new JButton("End Game");
         endGameButton.setEnabled(false);
-        newGameButton = new JButton("New Game");    // use field, not local
+        newGameButton = new JButton("New Game");
         newGameButton.setEnabled(false);
         rightControls.add(startGameButton);
         rightControls.add(endGameButton);
@@ -250,7 +250,7 @@ public class MainWindow extends JFrame {
             startGameButton.setEnabled(false);
             loadButton.setEnabled(false);
             endGameButton.setEnabled(true);
-            newGameButton.setEnabled(false);        // cannot reset mid-game
+            newGameButton.setEnabled(false);
             playerCountSpinner.setEnabled(false);
             for (JTextField tf : playerNameFields) {
                 tf.setEnabled(false);
@@ -332,20 +332,20 @@ public class MainWindow extends JFrame {
         boardPanel.repaint();
     }
 
-    private void onQuestionClicked(String categoryName, int value, JButton button) {
-        if (controller.getGameState() != GameState.IN_PROGRESS) {
-            JOptionPane.showMessageDialog(this,
-                    "Game is not in progress.",
-                    "Info",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
+   private void onQuestionClicked(String categoryName, int value, JButton button) {
+    if (!GameState.IN_PROGRESS.equals(controller.getGameState().getStatus())) {
+        JOptionPane.showMessageDialog(this,
+                "Game is not in progress.",
+                "Info",
+                JOptionPane.INFORMATION_MESSAGE);
+        return;
+    }
 
-        // Process log: Select Category & Select Question
-        logSystem("Select Category", categoryName, null, null);
-        logSystem("Select Question", categoryName, value, null);
+    // Process log: Select Category & Select Question
+    logSystem("Select Category", categoryName, null, null);
+    logSystem("Select Question", categoryName, value, null);
 
-        Question q = controller.getGame().getQuestion(categoryName, value);
+    Question q = controller.getQuestion(categoryName, value);
         if (q == null) {
             JOptionPane.showMessageDialog(this,
                     "Question not found.",
@@ -462,13 +462,26 @@ public class MainWindow extends JFrame {
 
         gameInProgress = false;
 
-        Player winner = controller.getWinner();
+        // UPDATED: Use tie handling to get winners
+        List<Player> winners = controller.getWinners();
         String message;
-        if (winner != null) {
-            message = String.format("Game over! Winner: %s with %d points.",
-                    winner.getName(), winner.getScore());
-        } else {
+        
+        if (winners.isEmpty()) {
             message = "Game over! No winner determined.";
+        } else if (winners.size() == 1) {
+            message = String.format("Game over! Winner: %s with %d points.",
+                    winners.get(0).getName(), winners.get(0).getScore());
+        } else {
+            // Tie scenario
+            StringBuilder tieMessage = new StringBuilder("Game over! It's a tie! Winners: ");
+            for (int i = 0; i < winners.size(); i++) {
+                tieMessage.append(winners.get(i).getName())
+                         .append(" (").append(winners.get(i).getScore()).append(" points)");
+                if (i < winners.size() - 1) {
+                    tieMessage.append(", ");
+                }
+            }
+            message = tieMessage.toString();
         }
 
         JOptionPane.showMessageDialog(this,
@@ -511,7 +524,7 @@ public class MainWindow extends JFrame {
         for (JTextField tf : playerNameFields) {
             tf.setEnabled(true);
         }
-        newGameButton.setEnabled(true);   // can now reset
+        newGameButton.setEnabled(true);
     }
 
     private void resetGame() {

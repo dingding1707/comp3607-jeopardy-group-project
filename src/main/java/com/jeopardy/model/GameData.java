@@ -61,7 +61,7 @@ public class GameData {
 
     public int getTotalQuestions() {
         return categories.stream()
-                .mapToInt(c -> c.getQuestions().size())
+                .mapToInt(c -> c.getAllQuestions().size())
                 .sum();
     }
 
