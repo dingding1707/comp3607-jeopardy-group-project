@@ -6,12 +6,14 @@ import com.jeopardy.model.Question;
 import com.jeopardy.model.GameEvent;
 import java.util.List;
 
+/** Manages game logic and event logging. */
 public class Game {
     private GameState gameState;
     private GameEventLogger eventLogger;
     private SummaryReportGenerator reportGenerator;
     private String caseId;
     
+    /** Creates a new Game instance. */
     public Game() {
         this.gameState = new GameState();
         this.caseId = "GAME" + System.currentTimeMillis();

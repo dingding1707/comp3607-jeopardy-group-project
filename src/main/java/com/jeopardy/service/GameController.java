@@ -13,6 +13,7 @@ import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/** Main controller for managing the Jeopardy game. */
 public class GameController {
     private GameState gameState;
     private GameData gameData;
@@ -160,7 +161,7 @@ public class GameController {
                 break;
 
             // ==========================================
-            // Fallback (shouldn’t really be used, but safe)
+            // Fallback 
             // ==========================================
             default:
                 builder.playerId("System");

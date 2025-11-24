@@ -1,10 +1,12 @@
 package com.jeopardy.model;
 
+/** Represents a player in the game. */
 public class Player{
     private String playerId;
     private String name;
     private int score;
 
+    /** Creates a player with the given ID and name. */
     public Player(String playerId, String name){
         this.playerId = playerId;
         this.name = name;
@@ -14,6 +16,7 @@ public class Player{
     public String getName(){
         return this.name;
     }
+   
     public String getPlayerId(){
         return this.playerId;
     }
@@ -32,7 +35,7 @@ public class Player{
             this.score += points;
     }
 
-     public void subtractPoints(int points) {
+    public void subtractPoints(int points) {
     if (points > 0) {
         this.score = Math.max(0, this.score - points); // Prevent negative scores
     }

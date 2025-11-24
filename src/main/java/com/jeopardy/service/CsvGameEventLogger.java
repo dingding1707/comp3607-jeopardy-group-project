@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
  * Logs game events to logs/game_event_log.csv
  * in the format required by the project handout.
  */
+
 public class CsvGameEventLogger implements GameEventLogger {
 
     private static final String CSV_HEADER =
@@ -96,8 +97,5 @@ public class CsvGameEventLogger implements GameEventLogger {
     }
 
     @Override
-    public void close() {
-        // You can optionally log a "Close Logger" event here if you want,
-        // but it's not required for the specified CSV format.
-    }
+    public void close() {}
 }

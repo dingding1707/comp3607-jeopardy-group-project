@@ -15,26 +15,12 @@ import java.util.Map;
 
 /**
  * Loads Jeopardy questions from an XML file.
- * Expected structure:
- *
- * <JeopardyQuestions>
- *   <QuestionItem>
- *     <Category>...</Category>
- *     <Value>100</Value>
- *     <QuestionText>...</QuestionText>
- *     <Options>
- *       <OptionA>...</OptionA>
- *       <OptionB>...</OptionB>
- *       <OptionC>...</OptionC>
- *       <OptionD>...</OptionD>
- *     </Options>
- *     <CorrectAnswer>A</CorrectAnswer>
- *   </QuestionItem>
- *   ...
- * </JeopardyQuestions>
+ * Expected structure: Root element with QuestionItem children
  */
+
 public class XmlGameDataLoader implements GameDataLoader {
 
+    /** Loads game data from an XML file. */
     @Override
     public GameData load(Path path) throws IOException {
         GameData gameData = new GameData();

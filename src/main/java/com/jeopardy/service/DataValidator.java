@@ -12,8 +12,8 @@ import java.util.Set;
  * Validates categories and questions before the game starts.
  * Used by CSV, JSON, and XML loaders.
  */
-public class DataValidator {
 
+public class DataValidator {
     public static void validateCategories(List<Category> categories) {
         if (categories == null || categories.isEmpty()) {
             throw new IllegalArgumentException("No categories found in file.");
@@ -45,7 +45,7 @@ public class DataValidator {
 
         Set<Integer> values = new HashSet<>();
 
-        // Iterate through the *values()* of the map
+        // Iterate through the values() of the map
         for (Question q : c.getAllQuestions()) {
 
             validateQuestion(q, c.getName());
@@ -57,7 +57,6 @@ public class DataValidator {
             }
         }
     }
-
 
     public static void validateQuestion(Question q, String categoryName) {
         if (q.getQuestionText() == null || q.getQuestionText().isBlank()) {

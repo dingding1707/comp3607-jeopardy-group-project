@@ -43,6 +43,7 @@ public class MainWindow extends JFrame {
 
     private boolean gameInProgress = false;
 
+    /** Initializes the main game window with all UI components. */
     public MainWindow() {
         super("COMP3607 Jeopardy Game");
 
@@ -132,11 +133,12 @@ public class MainWindow extends JFrame {
         refreshScores();
     }
 
-    // === Helper to log system events into process log ===
+    /** Logs a system event to the process mining log. */
     private void logSystem(String activity, String category, Integer value, String extra) {
         controller.systemEvent(activity, category, value, extra);
     }
 
+    /** Wires up action listeners for all UI buttons. */
     private void wireActions() {
         loadButton.addActionListener(e -> onLoadQuestions());
         startGameButton.addActionListener(e -> onStartGame());
@@ -148,6 +150,7 @@ public class MainWindow extends JFrame {
     //  File loading & game setup
     // =============================
 
+    /** Opens file chooser to load question data from CSV, JSON, or XML files. */
     private void onLoadQuestions() {
         if (gameInProgress) {
             JOptionPane.showMessageDialog(this,
@@ -202,6 +205,7 @@ public class MainWindow extends JFrame {
         }
     }
 
+    /** Initializes and starts a new game with selected players and loaded questions. */
     private void onStartGame() {
         if (loadedGameData == null || loadedGameData.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -265,6 +269,7 @@ public class MainWindow extends JFrame {
         }
     }
 
+    /** Forces the current game to end. */
     private void onEndGame() {
         if (!gameInProgress) {
             return;
@@ -279,6 +284,7 @@ public class MainWindow extends JFrame {
     //  Board creation & interaction
     // =============================
 
+    /** Builds the game board with category headers and question buttons. */
     private void buildBoard() {
         boardPanel.removeAll();
 
@@ -333,6 +339,7 @@ public class MainWindow extends JFrame {
         boardPanel.repaint();
     }
 
+   /** Displays question to current player and processes their answer. */
    private void onQuestionClicked(String categoryName, int value, JButton button) {
     if (!GameState.IN_PROGRESS.equals(controller.getGameState().getStatus())) {
         JOptionPane.showMessageDialog(this,
@@ -419,6 +426,7 @@ public class MainWindow extends JFrame {
     //  Scores & game end
     // =============================
 
+    /** Updates the score display panel for all players. */
     private void refreshScores() {
         scorePanel.removeAll();
 
@@ -437,6 +445,7 @@ public class MainWindow extends JFrame {
         scorePanel.repaint();
     }
 
+    /** Creates a score card component for a single player. */
     private JComponent createPlayerScoreCard(Player player) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -458,6 +467,7 @@ public class MainWindow extends JFrame {
         return card;
     }
 
+    /** Handles game end: displays winner, generates report, and resets UI. */
     private void onGameFinished() {
         if (!gameInProgress) {
             return;
@@ -533,6 +543,7 @@ public class MainWindow extends JFrame {
         newGameButton.setEnabled(true);
     }
 
+    /** Resets the game state and clears all UI components for a new game. */
     private void resetGame() {
     // Create a completely new controller to reset everything
     this.controller = new GameController();

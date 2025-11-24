@@ -3,7 +3,7 @@ package com.jeopardy.model;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/** Represents a multiple-choice question in the game. */
 public class Question {
     private String category;
     private int value;
@@ -12,6 +12,7 @@ public class Question {
     private String correctAnswer;
     private boolean isAnswered;
     
+    /** Creates a question with the specified parameters. */
     public Question(String category, int value, String questionText, 
                    Map<String, String> options, String correctAnswer) {
         this.category = category;
@@ -24,6 +25,7 @@ public class Question {
         validateQuestion();
     }
     
+    /** Validates the question data. */
     private void validateQuestion() {
         if (value <= 0) {
             throw new IllegalArgumentException("Question value must be positive");
@@ -37,7 +39,6 @@ public class Question {
         }
     }
     
-    
     public String getCategory() { 
         return category; 
     }
@@ -45,11 +46,12 @@ public class Question {
     public int getValue() { 
         return value; 
     }
-    
+   
     public String getQuestionText() { 
         return questionText; 
     }
     
+    /** Gets a copy of the options map. */
     public Map<String, String> getOptions() { 
         return new HashMap<>(options); 
     }
@@ -62,11 +64,9 @@ public class Question {
         return isAnswered; 
     }
     
-    
     public void setAnswered(boolean answered) { 
         this.isAnswered = answered; 
     }
-    
     
     public boolean isCorrect(String userAnswer) {
         if (userAnswer == null) return false;

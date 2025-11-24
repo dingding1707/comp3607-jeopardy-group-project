@@ -10,8 +10,10 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Generates a text summary report of the game. */
 public class TextSummaryReportGenerator implements SummaryReportGenerator {
 
+    /** Generates and writes the summary report. */
     @Override
     public Path generate(GameController controller) throws IOException {
 

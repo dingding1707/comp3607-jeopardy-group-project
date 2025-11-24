@@ -7,6 +7,7 @@ import javax.swing.SwingUtilities;
  */
 public class JeopardyGuiApp {
 
+    /** Launches the Jeopardy game */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             MainWindow window = new MainWindow();

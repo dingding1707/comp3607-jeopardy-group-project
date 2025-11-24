@@ -1,7 +1,9 @@
 package com.jeopardy.service;
 
+/** Factory for creating appropriate GameDataLoader instances. */
 public class GameDataLoaderFactory {
 
+    /** Creates a loader based on file type. */
     public static GameDataLoader createLoader(String filename) {
         String lower = filename.toLowerCase();
 

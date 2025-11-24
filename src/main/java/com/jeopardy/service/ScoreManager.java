@@ -5,6 +5,7 @@ import com.jeopardy.model.Player;
 /**
  * Manages player scoring using the Strategy pattern
  */
+
 public class ScoreManager {
     private ScoringStrategy scoringStrategy;
     
@@ -16,25 +17,19 @@ public class ScoreManager {
         this.scoringStrategy = scoringStrategy;
     }
     
-    /**
-     * Set the scoring strategy dynamically
-     */
+    /** Sets the scoring strategy. */
     public void setScoringStrategy(ScoringStrategy strategy) {
         if (strategy != null) {
             this.scoringStrategy = strategy;
         }
     }
     
-    /**
-     * Get the current scoring strategy
-     */
+    /** Gets the current strategy. */
     public ScoringStrategy getScoringStrategy() {
         return scoringStrategy;
     }
     
-    /**
-     * Update a player's score based on their answer
-     */
+    /** Updates a player's score. */
     public void updateScore(Player player, int questionValue, boolean isCorrect) {
         if (player == null) {
             throw new IllegalArgumentException("Player cannot be null");
@@ -50,16 +45,12 @@ public class ScoreManager {
         // If points == 0, no change
     }
     
-    /**
-     * Calculate what the score change would be without applying it
-     */
+    /** Calculates potential score without applying it. */
     public int calculatePotentialScore(int questionValue, boolean isCorrect) {
         return scoringStrategy.calculateScore(questionValue, isCorrect);
     }
     
-    /**
-     * Get the name of the current scoring strategy
-     */
+    /** Gets the strategy name. */
     public String getScoringStrategyName() {
         return scoringStrategy.getStrategyName();
     }

@@ -2,6 +2,7 @@ package com.jeopardy.model;
 
 import java.time.Instant;
 
+/** Represents a game event for logging and process mining. */
 public class GameEvent {
 
     private String caseId;
@@ -13,10 +14,9 @@ public class GameEvent {
     private String answerGiven;
     private String result;
     private Integer scoreAfterPlay;
-
-    // NEW → Needed by TextSummaryReportGenerator
     private String questionText;
 
+    /** Creates a GameEvent from a Builder. */
     private GameEvent(Builder builder) {
         this.caseId = builder.caseId;
         this.playerId = builder.playerId;
@@ -40,8 +40,6 @@ public class GameEvent {
     public String getAnswerGiven() { return answerGiven; }
     public String getResult() { return result; }
     public Integer getScoreAfterPlay() { return scoreAfterPlay; }
-
-    // NEW → Summary report needs this
     public String getQuestionText() { return questionText; }
 
     // ============================
@@ -58,57 +56,64 @@ public class GameEvent {
         private String answerGiven;
         private String result;
         private Integer scoreAfterPlay;
-
-        // NEW → store question text for summary
         private String questionText;
 
+        /** Creates a Builder with case ID and activity. */
         public Builder(String caseId, String activity) {
             this.caseId = caseId;
             this.activity = activity;
             this.timestamp = Instant.now();
         }
 
+        /** Sets the player ID. */
         public Builder playerId(String playerId) {
             this.playerId = playerId;
             return this;
         }
 
+        /** Sets the category. */
         public Builder category(String category) {
             this.category = category;
             return this;
         }
 
+        /** Sets the question value. */
         public Builder questionValue(Integer questionValue) {
             this.questionValue = questionValue;
             return this;
         }
 
+        /** Sets the answer given. */
         public Builder answerGiven(String answerGiven) {
             this.answerGiven = answerGiven;
             return this;
         }
 
+        /** Sets the result. */
         public Builder result(String result) {
             this.result = result;
             return this;
         }
 
+        /** Sets the score after play. */
         public Builder scoreAfterPlay(Integer scoreAfterPlay) {
             this.scoreAfterPlay = scoreAfterPlay;
             return this;
         }
 
+        /** Sets the timestamp. */
         public Builder timestamp(Instant timestamp) {
             this.timestamp = timestamp;
             return this;
         }
 
-        // NEW → fully support summary formatting
+        /** Sets the question text. */
         public Builder questionText(String questionText) {
             this.questionText = questionText;
             return this;
         }
 
+        /** Builds and returns the GameEvent. */
         public GameEvent build() {
             return new GameEvent(this);
         }

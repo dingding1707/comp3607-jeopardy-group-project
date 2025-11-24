@@ -11,9 +11,9 @@ import java.util.*;
 
 /**
  * Loads Jeopardy questions from a CSV file.
- * Expected header:
- * Category,Value,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer
+ * Expected header: Category,Value,Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer
  */
+
 public class CsvGameDataLoader implements GameDataLoader {
 
     @Override
@@ -63,6 +63,7 @@ public class CsvGameDataLoader implements GameDataLoader {
      * - Respects double quotes
      * - Splits on commas only when NOT inside quotes
      */
+
     private List<String> parseCsvLine(String line) {
         List<String> result = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -72,7 +73,7 @@ public class CsvGameDataLoader implements GameDataLoader {
             char c = line.charAt(i);
 
             if (c == '"') {
-                // Toggle quote mode, but keep content (and handle escaped quotes)
+                // Toggle quote mode, but keep content 
                 if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
                     // Escaped quote
                     current.append('"');
@@ -87,8 +88,7 @@ public class CsvGameDataLoader implements GameDataLoader {
                 current.append(c);
             }
         }
-        result.add(current.toString()); // last field
-
+        result.add(current.toString()); 
         // Strip outer quotes from each field
         for (int i = 0; i < result.size(); i++) {
             String field = result.get(i).trim();

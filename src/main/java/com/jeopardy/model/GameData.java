@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/** Represents the complete set of game data with categories and questions. */
 public class GameData {
 
     private List<Category> categories;
@@ -11,7 +12,6 @@ public class GameData {
     public GameData() {
         this.categories = new ArrayList<>();
     }
-
 
     public void addQuestion(Question question) {
         String categoryName = question.getCategory();
@@ -29,7 +29,7 @@ public class GameData {
         }
     }
 
-    
+    /** Adds a category to the game data. */
     public void addCategory(Category category) {
         if (category == null) {
             throw new IllegalArgumentException("Category cannot be null");
@@ -37,11 +37,12 @@ public class GameData {
         categories.add(category);
     }
 
-    
+    /** Returns a copy of all categories. */
     public List<Category> getCategories() {
         return new ArrayList<>(categories); 
     }
 
+    /** Gets a category by name (case-insensitive). */
     public Category getCategory(String name) {
         return categories.stream()
                 .filter(c -> c.getName().equalsIgnoreCase(name))
@@ -49,6 +50,7 @@ public class GameData {
                 .orElse(null);
     }
 
+    /** Finds a category by name using Optional. */
     public Optional<Category> findCategory(String name) {
         return categories.stream()
                 .filter(c -> c.getName().equalsIgnoreCase(name))
@@ -69,12 +71,11 @@ public class GameData {
         return categories.isEmpty();
     }
 
+    /** Checks if a category exists by name (case-insensitive). */
     public boolean hasCategory(String name) {
         return categories.stream()
                 .anyMatch(c -> c.getName().equalsIgnoreCase(name));
-    }
-
-    @Override
+    }    @Override
     public String toString() {
         return String.format(
             "GameData{categories=%d, totalQuestions=%d}",

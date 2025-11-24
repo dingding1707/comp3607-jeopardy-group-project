@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Represents the current state of the game. */
 public class GameState {
     public static final String SETUP = "SETUP";
     public static final String IN_PROGRESS = "IN_PROGRESS";
@@ -15,6 +16,7 @@ public class GameState {
     private String status;
     private int currentPlayerIndex;
     
+    /** Creates a new GameState with initial values. */
     public GameState() {
         this.players = new ArrayList<>();
         this.questions = new ArrayList<>();
@@ -33,7 +35,7 @@ public class GameState {
     public List<Question> getQuestions() {
         return questions;
     }
-    
+   
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
     }
@@ -73,16 +75,19 @@ public class GameState {
         questions.add(question);
     }
     
+    /** Moves to the next player. */
     public void nextPlayer() {
     if (players.isEmpty()) return;
     currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     currentPlayer = players.get(currentPlayerIndex);
 }
     
+    /** Checks if the game is finished. */
     public boolean isGameFinished() {
         return FINISHED.equals(status);
     }
     
+    /** Determines the winner(s) of the game. */
     public List<Player> determineWinners() {
         List<Player> winners = new ArrayList<>();
         if (players == null || players.isEmpty()) {
@@ -101,11 +106,13 @@ public class GameState {
         return winners;
     }
     
+    /** Checks if the game ended in a tie. */
     public boolean isTie() {
         List<Player> winners = determineWinners();
         return winners.size() > 1;
     }
     
+    /** Gets the game result message. */
     public String getGameResult() {
         List<Player> winners = determineWinners();
         
@@ -126,6 +133,7 @@ public class GameState {
         }
     }
     
+    /** Gets the single winner. */
     public Player getWinner() {
         List<Player> winners = determineWinners();
         return winners.isEmpty() ? null : winners.get(0);

@@ -12,26 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Loads Jeopardy data from a JSON file using the structure:
- *
- * [
- *   {
- *     "Category": "Science",
- *     "Value": 100,
- *     "Question": "What is H2O?",
- *     "Options": {
- *        "A": "Hydrogen",
- *        "B": "Oxygen",
- *        "C": "Water",
- *        "D": "Helium"
- *     },
- *     "CorrectAnswer": "C"
- *   },
- *   ...
- * ]
+ * Loads Jeopardy data from a JSON file.
+ * Expected structure: Array of question objects with Category, Value, Question, Options, CorrectAnswer
  */
+
 public class JsonGameDataLoader implements GameDataLoader {
 
+    /** Loads game data from a JSON file. */
+    
     @Override
     public GameData load(Path filePath) throws IOException {
 
@@ -108,6 +96,7 @@ public class JsonGameDataLoader implements GameDataLoader {
     //   Helper validation methods
     // -------------------------
 
+    /** Gets a required string field from JSON. */
     private String getRequiredString(JSONObject obj, String field, int index) throws IOException {
         if (!obj.has(field) || obj.isNull(field)) {
             throw new IOException("Missing field '" + field + "' at question index " + index);
@@ -119,6 +108,7 @@ public class JsonGameDataLoader implements GameDataLoader {
         return val;
     }
 
+    /** Gets a required integer field from JSON. */
     private int getRequiredInt(JSONObject obj, String field, int index) throws IOException {
         if (!obj.has(field) || obj.isNull(field)) {
             throw new IOException("Missing numeric field '" + field + "' at question index " + index);
