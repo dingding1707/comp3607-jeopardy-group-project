@@ -19,25 +19,48 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Scenario-based parsing tests for:
- *  - CSV / JSON / XML game data loaders
- *  - Validation of malformed inputs and duplicates
+ * Scenario-based parsing and validation tests for game data sources.
+ * <p>
+ * Covers:
+ * <ul>
+ *     <li>CSV, JSON and XML game data loaders</li>
+ *     <li>Handling of malformed input / missing fields</li>
+ *     <li>Validation of duplicate categories and repeated question values</li>
+ * </ul>
  *
  * Aligned with the Parsing Tests section of the JUnit test plan.
  */
 public class ParsingTests {
 
+
+    /**
+     * Temporary directory used to create ephemeral CSV/JSON/XML test files.
+     * JUnit cleans this directory up automatically after tests.
+     */    
     @TempDir
     Path tempDir;
 
-    // ---------- Helper Methods ----------
-
+    /**
+     * Creates a temporary file in the JUnit-managed temp directory and
+     * writes the given content to it using UTF-8 encoding.
+     *
+     * @param filename the name of the file to create
+     * @param content  the text content to write into the file
+     * @return the path to the created file
+     * @throws IOException if the file cannot be created or written
+     */
     private Path createTempFile(String filename, String content) throws IOException {
         Path path = tempDir.resolve(filename);
         Files.write(path, content.getBytes(StandardCharsets.UTF_8));
         return path;
     }
 
+    /**
+     * Builds a reusable set of four multiple-choice options (A–D) to be used
+     * when constructing {@link Question} instances directly in tests.
+     *
+     * @return a map of option keys to option text
+     */
     private Map<String, String> sampleOptions() {
         Map<String, String> options = new HashMap<>();
         options.put("A", "Option A");
@@ -49,6 +72,13 @@ public class ParsingTests {
 
     // ---------- 1. VALID PARSING TESTS ----------
 
+    /**
+     * Verifies that {@link CsvGameDataLoader} successfully parses a well-formed
+     * CSV file and populates {@link GameData} with the expected categories and
+     * questions.
+     *
+     * @throws IOException if the temporary CSV file cannot be written or read
+     */
     @Test
     void csvLoader_loadsValidFile() throws IOException {
         String csv =
@@ -69,7 +99,6 @@ public class ParsingTests {
         Category science = data.getCategory("Science");
         assertNotNull(science, "Science category should exist");
 
-        // Category exposes a Map<Integer, Question> via getQuestion()
         Question q = science.getQuestion().get(100);
         assertNotNull(q, "Science 100 question should exist");
         assertEquals("What is H2O?", q.getQuestionText());
@@ -77,6 +106,13 @@ public class ParsingTests {
         assertEquals("A", q.getCorrectAnswer());
     }
 
+    /**
+     * Verifies that {@link JsonGameDataLoader} correctly parses a valid JSON
+     * array of questions and populates {@link GameData} with the expected
+     * categories, values and options.
+     *
+     * @throws IOException if the temporary JSON file cannot be written or read
+     */
     @Test
     void jsonLoader_loadsValidFile() throws IOException {
         String json =
@@ -125,6 +161,12 @@ public class ParsingTests {
         assertEquals("B", q.getCorrectAnswer());
     }
 
+    /**
+     * Verifies that {@link XmlGameDataLoader} correctly parses a valid XML
+     * document and loads the corresponding questions into {@link GameData}.
+     *
+     * @throws IOException if the temporary XML file cannot be written or read
+     */
     @Test
     void xmlLoader_loadsValidFile() throws IOException {
         String xml =
@@ -175,6 +217,12 @@ public class ParsingTests {
 
     // ---------- 2. MALFORMED INPUT TESTS ----------
 
+    /**
+     * Ensures that a malformed CSV row (wrong number of columns) causes
+     * {@link CsvGameDataLoader#load(Path)} to throw an {@link IOException}.
+     *
+     * @throws IOException if the temporary CSV file cannot be written
+     */
     @Test
     void csvLoader_throwsOnMalformedRow() throws IOException {
         String csv =
@@ -190,6 +238,12 @@ public class ParsingTests {
                 "Malformed CSV row should cause IOException");
     }
 
+    /**
+     * Ensures that malformed JSON content causes {@link JsonGameDataLoader}
+     * to throw an {@link IOException} during parsing.
+     *
+     * @throws IOException if the temporary JSON file cannot be written
+     */
     @Test
     void jsonLoader_throwsOnMalformedJson() throws IOException {
         // Intentionally broken JSON (missing closing bracket)
@@ -213,6 +267,13 @@ public class ParsingTests {
 
     // ---------- 3. MISSING FIELDS TESTS ----------
 
+    /**
+     * Verifies that when a required JSON field is missing (e.g., Category),
+     * {@link JsonGameDataLoader} throws an {@link IOException} and reports
+     * an appropriate error message.
+     *
+     * @throws IOException if the temporary JSON file cannot be written
+     */
     @Test
     void jsonLoader_throwsWhenRequiredFieldMissing() throws IOException {
         // Missing the "Category" field
@@ -243,6 +304,10 @@ public class ParsingTests {
 
     // ---------- 4. DUPLICATE CATEGORY / QUESTION VALUE VALIDATION ----------
 
+    /**
+     * Ensures that {@link DataValidator#validateCategories(List)} rejects
+     * a list of categories containing duplicate category names.
+     */
     @Test
     void dataValidator_throwsOnDuplicateCategoryNames() {
         Map<String, String> options = sampleOptions();
@@ -266,6 +331,16 @@ public class ParsingTests {
                 "Error message should mention duplicate category name");
     }
 
+    /**
+     * Verifies that {@link DataValidator#validateCategory(Category)} throws
+     * an {@link IllegalArgumentException} when two questions within the
+     * same category share the same point value.
+     *
+     * <p>This test forces a duplicate value via reflection to simulate the
+     * invalid state.</p>
+     *
+     * @throws Exception if reflection access to the value field fails
+     */
     @Test
     void dataValidator_throwsOnRepeatedQuestionValueWithinCategory() throws Exception {
         Map<String, String> options = sampleOptions();

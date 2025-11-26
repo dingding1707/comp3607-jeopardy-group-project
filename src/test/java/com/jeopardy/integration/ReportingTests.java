@@ -11,16 +11,44 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests summary report generation via TextSummaryReportGenerator.
- * Fully aligned with the exact formatting rules inside generate().
+ * Tests summary report generation produced through the
+ * {@link GameController}'s summary report API (e.g. TextSummaryReportGenerator).
+ *
+ * <p>These tests verify that the report:</p>
+ * <ul>
+ *     <li>is created at the expected location</li>
+ *     <li>includes the case ID and player list</li>
+ *     <li>contains turn-by-turn gameplay details</li>
+ *     <li>shows final scores correctly</li>
+ *     <li>handles ties with an appropriate message</li>
+ * </ul>
+ *
+ * Fully aligned with the exact formatting rules inside {@code generate()}.
  */
+
 public class ReportingTests {
 
+    /** Game controller used to simulate gameplay and generate reports. */
     private GameController controller;
+
+    /** Simple science category used as a controlled data set. */
     private Category sci;
+
+    /** In-memory game data containing the category and question. */
     private GameData data;
+
+    /** Path to the generated report file for each test. */
     private Path reportPath;
 
+    /**
+     * Sets up a fresh game and a clean report directory before each test.
+     * <p>
+     * Creates a single Science category with one question and initializes
+     * a game with two players, Alice and Bob. It also ensures the
+     * {@code report/} directory is cleared of any previous report files.
+     *
+     * @throws IOException if any file or directory operation fails
+     */
     @BeforeEach
     void setup() throws IOException {
         controller = new GameController();
@@ -49,9 +77,15 @@ public class ReportingTests {
         }
     }
 
-    // -------------------------------------------------------
     // 1. REPORT FILE IS GENERATED
-    // -------------------------------------------------------
+
+    /**
+     * Verifies that generating a summary report produces a non-null
+     * path and that the corresponding file exists with the expected
+     * filename {@code summary_report.txt}.
+     *
+     * @throws IOException if reading or creating the report file fails
+     */
     @Test
     void reportFileIsCreated() throws IOException {
         controller.answerQuestion("Science", 100, "A");
@@ -62,9 +96,14 @@ public class ReportingTests {
         assertTrue(reportPath.getFileName().toString().equals("summary_report.txt"));
     }
 
-    // -------------------------------------------------------
     // 2. REPORT CONTAINS CASE ID
-    // -------------------------------------------------------
+
+    /**
+     * Ensures that the generated report includes the unique case ID
+     * associated with the current game.
+     *
+     * @throws IOException if the report file cannot be read
+     */
     @Test
     void reportContainsCaseId() throws IOException {
         controller.answerQuestion("Science", 100, "A");
@@ -74,9 +113,14 @@ public class ReportingTests {
         assertTrue(text.contains("Case ID: " + controller.getCaseId()));
     }
 
-    // -------------------------------------------------------
     // 3. CONTAINS PLAYER LIST
-    // -------------------------------------------------------
+
+    /**
+     * Verifies that the report lists all players in the game in the
+     * expected format (e.g. {@code Players: Alice, Bob}).
+     *
+     * @throws IOException if the report file cannot be read
+     */
     @Test
     void reportListsPlayers() throws IOException {
         controller.answerQuestion("Science", 100, "A");
@@ -86,9 +130,15 @@ public class ReportingTests {
         assertTrue(text.contains("Players: Alice, Bob"));
     }
 
-    // -------------------------------------------------------
     // 4. TURN-BY-TURN SUMMARY IS CORRECT
-    // -------------------------------------------------------
+
+    /**
+     * Confirms that the report contains a detailed gameplay summary,
+     * including the turn number, selected category and value, question
+     * text, answer result and score after the turn.
+     *
+     * @throws IOException if the report file cannot be read
+     */
     @Test
     void reportContainsTurnSummary() throws IOException {
         controller.answerQuestion("Science", 100, "A");
@@ -103,9 +153,14 @@ public class ReportingTests {
         assertTrue(text.contains("Score after turn: Alice = 100"));
     }
 
-    // -------------------------------------------------------
     // 5. FINAL SCORES SECTION
-    // -------------------------------------------------------
+
+    /**
+     * Ensures that the report shows a final scores section and that
+     * each player's ending score is correctly displayed.
+     *
+     * @throws IOException if the report file cannot be read
+     */
     @Test
     void reportShowsFinalScores() throws IOException {
         controller.answerQuestion("Science", 100, "A");
@@ -118,9 +173,15 @@ public class ReportingTests {
         assertTrue(text.contains("Bob: 0"));
     }
 
-    // -------------------------------------------------------
     // 6. TIE MESSAGE WHEN MULTIPLE WINNERS
-    // -------------------------------------------------------
+
+    /**
+     * Verifies that when multiple players share the highest score,
+     * the report includes a tie message listing all winners with
+     * their corresponding points.
+     *
+     * @throws IOException if the report file cannot be read
+     */
     @Test
     void reportShowsTieMessage() throws IOException {
         // Make both players equal score
