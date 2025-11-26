@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"com.jeopardy.model"},{"l":"com.jeopardy.service"},{"l":"com.jeopardy.user_interface"}];updateSearchResults();

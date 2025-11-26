@@ -5,3 +5,7 @@ target/
 *.xml
 *.json
 *.txt
+
+# for Javadoc <3
+!Javadoc/
+!Javadoc/**
