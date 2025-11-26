@@ -1,4 +1,4 @@
-package com.jeopardy.scenarios;
+package com.jeopardy.integration;
 
 import com.jeopardy.model.*;
 import com.jeopardy.service.GameController;

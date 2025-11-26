@@ -1,4 +1,4 @@
-package com.jeopardy.scenarios;
+package com.jeopardy.integration;
 
 import com.jeopardy.model.Player;
 import com.jeopardy.service.ScoreManager;
