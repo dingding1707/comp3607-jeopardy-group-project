@@ -6,6 +6,6 @@ target/
 *.json
 *.txt
 
-# for Javadoc <3
-!Javadoc/
-!Javadoc/**
+# for Javadoc
+!docs/
+!docs/**
